@@ -1,0 +1,62 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: sonar
+          POSTGRES_PASSWORD: sonar
+          POSTGRES_DB: sonar
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U sonar"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      sonarqube:
+        image: sonarqube:8.9-community
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd="curl -s http://localhost:9000/api/system/health | grep -q UP"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Java
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+
+      # Step 3: Build the container
+      - name: Build Docker container
+        run: |
+          docker build -t demo-app .
+
+      # Step 4: Run unit tests
+      - name: Run Unit Tests
+        run: |
+          ./gradlew test
+
+      # Step 5: Run SonarQube analysis
+      - name: Run SonarQube Analysis
+        env:
+          SONAR_HOST_URL: http://localhost:9000
+          SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          ./gradlew sonarqube
