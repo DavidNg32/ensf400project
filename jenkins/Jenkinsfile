@@ -72,7 +72,7 @@ pipeline {
         // generate the code coverage report for jacoco
         sh './gradlew jacocoTestReport'
       }
-      post {
+      post { 
           always {
             junit 'build/test-results/bdd/*.xml'
           }
