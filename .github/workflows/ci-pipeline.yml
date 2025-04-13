@@ -60,14 +60,21 @@ jobs:
           curl -s -u admin:admin -X POST "http://localhost:9000/api/projects/create" \
             -d "name=ensf400 Library System" \
             -d "project=ensf400-library" || echo "Project may already exist, continuing..."
-      
-      # Step 6: Run unit tests
+      #Step 6 : Start Gradle Application server
+      - name: Start Gradle Application server
+        run: |
+          # Start the application server in the background
+          ./gradlew apprun &
+          sleep 30
+          echo "Gradle application server started."
+
+      # Step 7: Run unit tests
       - name: Run Unit Tests
         run: |
           ./gradlew runAllTests
           echo "Unit tests completed."
           
-      # Step 7: Run SonarQube analysis
+      # Step 8: Run SonarQube analysis
       - name: Run SonarQube Analysis
         run: |
           echo "Running SonarQube analysis..."
