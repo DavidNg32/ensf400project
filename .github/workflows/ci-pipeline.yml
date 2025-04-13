@@ -61,33 +61,13 @@ jobs:
             -d "name=ensf400 Library System" \
             -d "project=ensf400-library" || echo "Project may already exist, continuing..."
       
-      # Step 6: Run unit and integration tests (no server needed)
-      - name: Run Unit and Integration Tests
+      # Step 6: Run unit tests
+      - name: Run Unit Tests
         run: |
-          echo "Running Gradle tests that don't require a server..."
-          docker exec mycontainer ./gradlew test
-          docker exec mycontainer ./gradlew integrate
-          docker exec mycontainer ./gradlew generateCucumberReports
-          echo "Base tests completed."
-
-      # Step 7: Run API and UI tests (server needed)
-      - name: Run API and UI Tests
-        run: |
-          echo "Starting application server..."
-          # Start the app in the background
-          docker exec -d mycontainer ./gradlew apprun
+          ./gradlew runAllTests
+          echo "Unit tests completed."
           
-          # Wait for server to start
-          echo "Waiting for application server to start..."
-          sleep 30
-          
-          # Run tests that need a server
-          echo "Running API tests..."
-          docker exec mycontainer ./gradlew runApiTests || true
-          
-          echo "API and UI tests completed."
-          
-      # Step 8: Run SonarQube analysis
+      # Step 7: Run SonarQube analysis
       - name: Run SonarQube Analysis
         run: |
           echo "Running SonarQube analysis..."
