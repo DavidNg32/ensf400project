@@ -5,6 +5,13 @@ on:
     branches:
       - main
 
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual trigger'
+        required: false
+        default: 'Testing CI/CD pipeline'
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
