@@ -51,6 +51,14 @@ jobs:
 
       - name: Gradle Build
         run: ./gradlew clean assemble
+
+        #Step 6 : Start Gradle Application server
+      - name: Start Gradle Application server
+        run: |
+          # Start the application server in the background
+          ./gradlew apprun &
+          sleep 30
+          echo "Gradle application server started."
       
       # Step 5: Wait for SonarQube to start and create project
       - name: Wait for SonarQube and create project
@@ -64,13 +72,13 @@ jobs:
             -d "name=ensf400 Library System" \
             -d "project=ensf400-library" || echo "Project may already exist, continuing..."
 
-      #Step 6 : Start Gradle Application server
-      - name: Start Gradle Application server
+      - name: Change SonarQube Admin Password
         run: |
-          # Start the application server in the background
-          ./gradlew apprun &
-          sleep 30
-          echo "Gradle application server started."
+          echo "Changing SonarQube admin password..."
+          curl -u admin:admin -X POST "http://localhost:9000/api/users/change_password" \
+            -d "login=admin" \
+            -d "password=themotherfuckingpassword" \
+            -d "previousPassword=admin"
 
       # Step 7: Run unit tests
       - name: Run Unit Tests
@@ -86,5 +94,5 @@ jobs:
             -Dsonar.projectKey=ensf400-library \
             -Dsonar.host.url=http://localhost:9000 \
             -Dsonar.login=admin \
-            -Dsonar.password=ensf400 
+            -Dsonar.password=themotherfuckingpassword  
           echo "SonarQube analysis completed."
