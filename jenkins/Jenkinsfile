@@ -88,7 +88,7 @@ pipeline {
         }      
 
       steps{     
-        sh './gradlew sonarqube -Dsonar.host.url=http://sonarqube:9000 -Dsonar.login="admin" -Dsonar.password="ensf400"'
+        sh './gradlew sonarqube -Dsonar.host.url=https://musical-couscous-5gq475xqrp4f4xrp-9000.app.github.dev/ -Dsonar.login="admin" -Dsonar.password="ensf400"'
       }
     } 
   }
