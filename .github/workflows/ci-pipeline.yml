@@ -33,14 +33,13 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'gradle'
 
       # Step 3: Set up Docker
       - name: Set up Docker
         run: |
           echo "Setting up Docker..."
           docker --version
-          docker-compose --version
+          docker compose version
           echo "Docker setup complete."
 
       # Step 4: Build the container
