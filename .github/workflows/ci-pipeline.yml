@@ -96,3 +96,34 @@ jobs:
             -Dsonar.login=admin \
             -Dsonar.password=themotherfuckingpassword  
           echo "SonarQube analysis completed."
+          
+      # Step 9: Generate and save SonarQube report
+      - name: Generate SonarQube Report
+        run: |
+          echo "Generating SonarQube report..."
+          # Wait for SonarQube to process results
+          sleep 10
+
+          # Export issues report to a file
+          curl -u admin:themotherfuckingpassword -o sonarqube-issues.json \
+            "http://localhost:9000/api/issues/search?projectKeys=ensf400-library&resolved=false"
+
+          # Export quality gate status
+          curl -u admin:themotherfuckingpassword -o sonarqube-quality-gate.json \
+            "http://localhost:9000/api/qualitygates/project_status?projectKey=ensf400-library"
+
+          # Export measures/metrics
+          curl -u admin:themotherfuckingpassword -o sonarqube-measures.json \
+            "http://localhost:9000/api/measures/component?component=ensf400-library&metricKeys=ncloc,complexity,violations,coverage,duplicated_lines_density"
+
+          echo "SonarQube reports generated"
+
+      # Step 10: Upload reports as artifacts
+      - name: Upload SonarQube Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: sonarqube-reports
+          path: |
+            sonarqube-issues.json
+            sonarqube-quality-gate.json
+            sonarqube-measures.json
