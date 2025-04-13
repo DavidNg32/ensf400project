@@ -1,4 +1,11 @@
 services:
+
+  app:
+    container_name: mycontainer
+    build:
+      context: .
+      dockerfile: Dockerfile
+  
   jenkins:
     build: ./jenkins
     privileged: true
