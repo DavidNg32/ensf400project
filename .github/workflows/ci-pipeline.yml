@@ -120,7 +120,7 @@ jobs:
 
       # Step 10: Upload reports as artifacts
       - name: Upload SonarQube Reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sonarqube-reports
           path: |
