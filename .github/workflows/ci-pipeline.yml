@@ -10,7 +10,7 @@ on:
       reason:
         description: 'Reason for manual trigger'
         required: false
-        default: 'Testing CI/CD pipeline'
+        default: 'Manual trigger'
 
 jobs:
   build-and-test:
