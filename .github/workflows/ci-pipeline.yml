@@ -48,6 +48,9 @@ jobs:
           echo "Building Docker container using docker-compose.yaml..."
           docker compose -f docker-compose.yaml build
           docker compose -f docker-compose.yaml up -d
+
+      - name: Gradle Build
+        run: ./gradlew clean assemble
       
       # Step 5: Wait for SonarQube to start and create project
       - name: Wait for SonarQube and create project
@@ -60,6 +63,7 @@ jobs:
           curl -s -u admin:admin -X POST "http://localhost:9000/api/projects/create" \
             -d "name=ensf400 Library System" \
             -d "project=ensf400-library" || echo "Project may already exist, continuing..."
+
       #Step 6 : Start Gradle Application server
       - name: Start Gradle Application server
         run: |
@@ -71,7 +75,7 @@ jobs:
       # Step 7: Run unit tests
       - name: Run Unit Tests
         run: |
-          ./gradlew runAllTests
+          ./gradlew test
           echo "Unit tests completed."
           
       # Step 8: Run SonarQube analysis
@@ -82,5 +86,5 @@ jobs:
             -Dsonar.projectKey=ensf400-library \
             -Dsonar.host.url=http://localhost:9000 \
             -Dsonar.login=admin \
-            -Dsonar.password=ensf400 \
+            -Dsonar.password=ensf400 
           echo "SonarQube analysis completed."
