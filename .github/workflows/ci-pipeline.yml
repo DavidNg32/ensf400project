@@ -1,6 +1,10 @@
 name: CI Pipeline
 
 on:
+  push:
+    branches:
+      - main
+  
   pull_request:
     branches:
       - main
@@ -15,55 +19,62 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    services:
-      db:
-        image: postgres:latest
-        env:
-          POSTGRES_USER: sonar
-          POSTGRES_PASSWORD: sonar
-          POSTGRES_DB: sonar
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U sonar"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-      sonarqube:
-        image: sonarqube:8.9-community
-        ports:
-          - 9000:9000
-        options: >-
-          --health-cmd="curl -s http://localhost:9000/api/system/health | grep -q UP"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
+    
     steps:
       # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  
 
       # Step 2: Set up Java
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          java-version: 17
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
 
-      # Step 3: Build the container
+      # Step 3: Set up Docker
+      - name: Set up Docker
+        run: |
+          echo "Setting up Docker..."
+          docker --version
+          docker-compose --version
+          echo "Docker setup complete."
+
+      # Step 4: Build the container
       - name: Build Docker container
         run: |
-          docker build -t demo-app .
-
-      # Step 4: Run unit tests
+          echo "Building Docker container using docker-compose.yaml..."
+          docker compose -f docker-compose.yaml build
+          docker compose -f docker-compose.yaml up -d
+      
+      # Step 5: Wait for SonarQube to start and create project
+      - name: Wait for SonarQube and create project
+        run: |
+          echo "Waiting for SonarQube to be ready..."
+          # Wait for SonarQube to become available (max 2 minutes)
+          timeout 120 bash -c 'until curl -s http://localhost:9000/api/system/status | grep -q "UP"; do echo "Waiting for SonarQube..."; sleep 10; done'
+          
+          echo "Creating SonarQube project..."
+          curl -s -u admin:admin -X POST "http://localhost:9000/api/projects/create" \
+            -d "name=ensf400 Library System" \
+            -d "project=ensf400-library" || echo "Project may already exist, continuing..."
+      
+      # Step 6: Run unit tests
       - name: Run Unit Tests
         run: |
           ./gradlew test
-
-      # Step 5: Run SonarQube analysis
+          echo "Unit tests completed."
+          
+      # Step 7: Run SonarQube analysis
       - name: Run SonarQube Analysis
-        env:
-          SONAR_HOST_URL: http://localhost:9000
-          SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          ./gradlew sonarqube
+          echo "Running SonarQube analysis..."
+          ./gradlew sonarqube \
+            -Dsonar.projectKey=ensf400-library \
+            -Dsonar.host.url=http://localhost:9000 \
+            -Dsonar.login=admin \
+            -Dsonar.password=ensf400 \
+          echo "SonarQube analysis completed."
