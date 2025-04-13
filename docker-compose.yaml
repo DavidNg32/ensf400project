@@ -12,7 +12,7 @@ services:
       - dev-network
   
   jenkins:
-    build: ./jenkins
+    build: ./jenkins 
     privileged: true
     user: root
     ports:
